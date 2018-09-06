@@ -21,17 +21,21 @@
         session_start(); // SESSION REGISTRATION ! ! ! ! !
         // header("Cache-control: no-cache");
         //echo "--isloggedin---> " . $_SESSION['isloggedin'];
-        if(isset($_SESSION["isloggedin"])) { session_unregister ("isloggedin"); }
-        if(isset($_SESSION["userid"])) { session_unregister ("userid"); }
-        if(isset($_SESSION["duplock"])) { session_unregister ("duplock"); }
-        if(isset($_SESSION["useraccess"])) { session_unregister ("useraccess"); }
-        if(isset($_SESSION["firstAttempt"])) { session_unregister ("firstAttempt"); }
-        if(isset($_SESSION["loginTrys"])) { session_unregister ("loginTrys"); }
-        if(isset($_SESSION["localLogFile"])) { session_unregister ("localLogFile"); }
-        if(isset($_SESSION["dbURL"])) { session_unregister ("dbURL"); }
-        if(isset($_SESSION["dbName"])) { session_unregister ("dbName"); }
-        if(isset($_SESSION["dbUser"])) { session_unregister ("dbUser"); }
-        if(isset($_SESSION["dbSecret"])) { session_unregister ("dbSecret"); }
+
+        /*
+           session_unregister is deprecated.  Uncomment for older PHP versions.
+        */
+        //if(isset($_SESSION["isloggedin"])) { session_unregister ("isloggedin"); }
+        //if(isset($_SESSION["userid"])) { session_unregister ("userid"); }
+        //if(isset($_SESSION["duplock"])) { session_unregister ("duplock"); }
+        //if(isset($_SESSION["useraccess"])) { session_unregister ("useraccess"); }
+        //if(isset($_SESSION["firstAttempt"])) { session_unregister ("firstAttempt"); }
+        //if(isset($_SESSION["loginTrys"])) { session_unregister ("loginTrys"); }
+        //if(isset($_SESSION["localLogFile"])) { session_unregister ("localLogFile"); }
+        //if(isset($_SESSION["dbURL"])) { session_unregister ("dbURL"); }
+        //if(isset($_SESSION["dbName"])) { session_unregister ("dbName"); }
+        //if(isset($_SESSION["dbUser"])) { session_unregister ("dbUser"); }
+        //if(isset($_SESSION["dbSecret"])) { session_unregister ("dbSecret"); }
 
         session_destroy (); // SESSION DESTROY ! ! ! ! !
         header("Location: /index.php?err_msg=Logged Out!"); /* Redirect */
@@ -51,8 +55,11 @@
              $_SESSION["loginTrys"] = $_SESSION["loginTrys"] + 1;
         }
         else {
-             session_register ("firstAttempt");
-             session_register ("loginTrys");
+             /*
+              session_register is deprecated.  Uncomment for older PHP versions.
+             */
+             // session_register ("firstAttempt");
+             // session_register ("loginTrys");
              $_SESSION["firstAttempt"] = 1;
              $_SESSION["loginTrys"] = 1;
              $_SESSION["localLogFile"] = "localLog.log";
@@ -173,8 +180,11 @@
         // echo " query results " . $iresults . "<br>\n";
         // exit();
 
-        session_register ("isloggedin");
-        session_register ("userid");
+        /*
+          session_register is deprecated.  Uncomment for older PHP versions.
+         */
+        // session_register ("isloggedin");
+        // session_register ("userid");
         $_SESSION["isloggedin"] = 1;
         $_SESSION["userid"] = $tnum;
         $_SESSION["duplock"] = 0;  // This variable is used to prevent folks from hitting the back button after inserts.

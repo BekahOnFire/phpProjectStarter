@@ -39,14 +39,14 @@
 <div id="main" style="background-image: url('/images/dasDivSystem.gif');background-repeat: no-repeat;background-size:900px 600px;width: 940px; height: 600px;">
 
 <form method="POST" action="/basicLogin.php">
-        <p align="center"><font color="#FF0000"><b><? echo "$err_msg"; ?></b></p>
+        <p align="center"><font color="#FF0000"><b><?php echo "$err_msg"; ?></b></p>
 <br> <br>
 <p align="center">
 <table border=0 cellpadding=0 cellspacing=0 >
 
  <tr><td><img border="0" src="images/m_clientid.jpg" title="Client ID"</td>
-     <td><input type="text" name="valid_id" value="<? echo $valid_id; ?>" size="12" maxsize="12"></td></tr>
-     <tr><td><img border="0" src="images/m_psw.jpg" title="PSW"></td><td><input type="password" name="passwrd" value="<? echo $passwrd; ?>" size="12" maxsize="12">
+     <td><input type="text" name="valid_id" value="<?php echo $valid_id; ?>" size="12" maxsize="12"></td></tr>
+     <tr><td><img border="0" src="images/m_psw.jpg" title="PSW"></td><td><input type="password" name="passwrd" value="<?php echo $passwrd; ?>" size="12" maxsize="12">
      </td></tr><tr><td colspan="2" align="center"><font color="#FF0000"><input type="submit" name="login_button" value="Login" >
         </td></tr>
 </table>

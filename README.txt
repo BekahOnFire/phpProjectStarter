@@ -19,3 +19,8 @@ The username and password: firstguy, guypwd!
 Afterward, change the default user and password for the mysql access.
 Username and password: webUser, webUser1 in the "USER=webuser" and "SECRET=webuser1" . You can also change the database name, "DATABASE=<new name>".
 
+Tips
+When debugging 500 errors on Linux, view the /var/log/http/error-log for errors in PHP.  Example: tail -20 /var/log/http/error-log
+
+When encountering error - Could not connect: Access denied for user 'webuser'@'localhost' (using password YES
+Manually, log into MySQL as, "mysql -u webuser -p " to validate mysql access.
