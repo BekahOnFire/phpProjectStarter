@@ -103,21 +103,9 @@ class webDisplay
         // Background image for page display.  Change as needed.
         $buf = "<div id=\"main\" style=\"background-image: url('/images/dasDivSystem.gif');background-repeat: no-repeat;background-size:900px 600px;width: 940px; height: 600px;\">\n" .
             $hldPageTitle .
-            "<form name=\"" . $inputFormName . "\" id=\"" . $inputFormName . "\" method=\"POST\" action=\"/ontrial/" . $pageActionPath . "\">\n" .
+            "<form name=\"" . $inputFormName . "\" id=\"" . $inputFormName . "\" method=\"POST\" action=\"" . $pageActionPath . "\">\n" .
         "\n";
         return $buf;
-    }
-
-    /*
-     * Start Test Plan Content configuration
-     */
-    public function displayTestPlanContent() {
-        $buf = "<div id=\"main\">\n" .
-            "<h2>Test Plan Content</h2>\n" .
-
-            "<form name=\"testScriptInputForm\" id=\"testScriptInputForm\" method=\"POST\" action=\"/ontrial/popups/manageTestPlanContents.jsp\">\n" .
-        "\n";
-        return buf;
     }
 
     /*
