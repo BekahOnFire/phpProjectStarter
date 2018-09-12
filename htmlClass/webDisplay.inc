@@ -103,7 +103,7 @@ class webDisplay
         // Background image for page display.  Change as needed.
         $buf = "<div id=\"main\" style=\"background-image: url('/images/dasDivSystem.gif');background-repeat: no-repeat;background-size:900px 600px;width: 940px; height: 600px;\">\n" .
             $hldPageTitle .
-            "<form name=\"" . $inputFormName . "\" method=\"POST\" action=\"/ontrial/" . $pageActionPath . "\">\n" .
+            "<form name=\"" . $inputFormName . "\" id=\"" . $inputFormName . "\" method=\"POST\" action=\"/ontrial/" . $pageActionPath . "\">\n" .
         "\n";
         return $buf;
     }
