@@ -49,7 +49,8 @@
             $ip = getenv(REMOTE_ADDR);
         }
 
-        $valid_id=$_POST['valid_id'];
+        $passwrd = $_POST['passwrd'];
+        $valid_id = $_POST['valid_id'];
         session_start(); // SESSION REGISTRATION ! ! ! ! !
         if (isset($_SESSION["firstAttempt"])) {
              $_SESSION["loginTrys"] = $_SESSION["loginTrys"] + 1;
@@ -74,10 +75,16 @@
         //     DATABASE=myDatabaseName
         //     USER=myUserName
         //     SECRET=mySecret
+        //     LDAPON=N
+        //     LDAP=myLdapServer
+        //     LDAPDOMAIN=myLdapDomain
         $dbURL = "not found";
         $dbName = "not found";
         $dbUser = "not found";
         $dbSecret = "not found";
+        $ldapOn = "";
+        $ldapServer = "not found";
+        $ldapDomain = "not found";
         $cfglines = file('byHisSide.php');
         foreach ($cfglines as $line_num => $line) {
             //echo "Line #<b>{$line_num}</b> : " . htmlspecialchars($line) . "<br />\n";
@@ -113,22 +120,102 @@
                 } else
                     $dbSecret = "not set";
             }
+            if (strpos($line, 'LDAPON=') !== false) {
+                $hldAry = explode("=", $line);
+                if ( count($hldAry) > 1 ) {
+                    $ldapon = str_replace("\n", "", $hldAry[1]);
+                } else
+                    $ldapon = "not set";
+            }
+            if (strpos($line, 'LDAP=') !== false) {
+                $hldAry = explode("=", $line);
+                if ( count($hldAry) > 1 ) {
+                    $ldapServer = str_replace("\n", "", $hldAry[1]);
+                } else
+                    $ldapServer = "not set";
+            }
+            if (strpos($line, 'LDAPDOMAIN=') !== false) {
+                $hldAry = explode("=", $line);
+                if ( count($hldAry) > 1 ) {
+                    $ldapDomain = str_replace("\n", "", $hldAry[1]);
+                } else
+                    $ldapDomain = "not set";
+            }
         }
 
         // Connect to the database.
         $ptrDb = new dbConnect;
         $ptrDb->dbConnectUp($dbURL,$dbName,$dbUser,$dbSecret);
 
+        //
+        // Connect to LDAP.
+        // Each user needs a local record. If in LDAP, add local record.
+        // Then flow through to the default system.
+        if ( $ldapon === 'Y' ) {
+            $ldap = ldap_connect($ldapServer);
+
+            $ldaprdn = 'mydomain' . "\\" . $valid_id;
+            ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
+            ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
+            $bind = @ldap_bind($ldap, $ldaprdn, $passwrd);
+
+
+            if ($bind) {
+                $filter="(sAMAccountName=$valid_id)";
+                $result = ldap_search($ldap,"dc=MYDOMAIN,dc=COM",$filter);
+                ldap_sort($ldap,$result,"sn");
+                $info = ldap_get_entries($ldap, $result);
+                for ($i=0; $i < $info["count"]; $i++)
+                {
+                    if($info['count'] > 1)
+                        break;
+                    $thisMsg = "<p>You are accessing <strong> ". $info[$i]["sn"][0] .", " . $info[$i]["givenname"][0] ."</strong><br /> (" . $info[$i]["samaccountname"][0] .")</p>\n";
+                    $thisMsg = $thisMsg . '<pre>';
+                    localLogWriter($valid_id, $thisMsg);
+                    // var_dump($info);
+                    localLogWriter($valid_id, "Info:" . $info);
+                    // 
+                    $_SESSION["userFullName"] = $info[$i]["distinguishedname"][0];
+                    $query = "select U.USER_NUMBER,USERNAME,PASSWD,APP_ACCESS,
+                              MAXLOGINATTEMPTS, ADMIN_ABLE
+                                from BASIC_USERS U, BASIC_USERS_CONFIG C
+                                where USERNAME='" . $valid_id . "'
+                                and PASSWD='" . $passwrd . "'
+                                and C.USER_NUMBER=U.USER_NUMBER ";
+
+                    $myResults = $ptrDb->executeQuery($query);
+                    if ($myResults) {
+                        if ( $ptrDb->queryResultsRowCount($myResults) < 1 ) {
+                            $insQuery = "insert into BASIC_USERS values (null,'" . $valid_id . "','" . $passwrd . "',now(),now(),now(),now(),0,0,'setup','')";
+                            $insResults = $ptrDb->executeQuery($insQuery);
+                            $query = "select U.USER_NUMBER from BASIC_USERS where USERNAME='" . $valid_id . "' and PASSWD='" . $passwrd . "'";
+                            $viewResults = $ptrDb->executeQuery($query);
+                            if ($viewResults) {
+                                if ( $ptrDb->queryResultsRowCount($myResults) > 0 ) {
+                                    $insQuery = "insert into BASIC_USERS_CONFIG values (1,15,'Y',now(),now())";
+                                    $insResults = $ptrDb->executeQuery($insQuery);
+                                }
+                            }
+                            $insResults = $ptrDb->executeQuery($insQuery);
+                        }
+                    }
+                }
+                @ldap_close($ldap);
+            }
+        }
+
+        //
+        // User record must exist in the database.
         $query = "select U.USER_NUMBER,USERNAME,PASSWD,APP_ACCESS,
                   MAXLOGINATTEMPTS, ADMIN_ABLE
                     from BASIC_USERS U, BASIC_USERS_CONFIG C
-                    where USERNAME='" . $_POST['valid_id'] . "' and PASSWD='" . $_POST['passwrd'] . "'
+                    where USERNAME='" . $valid_id . "' and PASSWD='" . $passwrd . "'
                     and C.USER_NUMBER=U.USER_NUMBER ";
         $myResults = $ptrDb->executeQuery($query);
         if ($myResults) {
             if ( $ptrDb->queryResultsRowCount($myResults) < 1 ) {
                 $err_msg = "Invalid Username and Password!<br>Remember, Username and Passwords are case sensitive.";
-                localLogWriter($_POST['valid_id'], $err_msg);
+                localLogWriter($valid_id, $err_msg);
                 // Close the database.
                 $ptrDb->dbclose();
                 header("Location: /index.php?err_msg=" . $err_msg); /* Redirect */
@@ -137,7 +224,7 @@
         }
         else {
             $err_msg = "Invalid Username and Password.....";
-            localLogWriter($_POST['valid_id'], $err_msg);
+            localLogWriter($valid_id, $err_msg);
             // Close the database.
             $ptrDb->dbclose();
             header("Location: /index.php?err_msg=" . $err_msg); /* Redirect */
@@ -151,19 +238,19 @@
         if ( $_SESSION["loginTrys"] > $maxloginattempts ) {
             $err_msg = "<br><br><br><center><b>You have exceeded the maximum number of login attempts (". $maxloginattempts . ")<b></center><br><br><b>Restart your browser. " . $_SESSION["loginTrys"] . "</b>\n";
             echo $err_msg;
-            localLogWriter($_POST['valid_id'], $err_msg);
+            localLogWriter($valid_id, $err_msg);
             // Close the database.
             $ptrDb->dbclose();
             exit();
         }
 
         // Update the logging info.
-        $insert = "update MOTL_USERS set LAST_LOGIN=now(),COUNT_LOGINS=COUNT_LOGINS+1,LAST_IP='$ip'
-        where USERNAME='" . $_POST['valid_id'] . "' and PASSWD='" . $_POST['passwrd'] . "' ";
+        $insert = "update BASIC_USERS set LAST_LOGIN=now(),COUNT_LOGINS=COUNT_LOGINS+1,LAST_IP='$ip'
+        where USERNAME='" . $valid_id . "' and PASSWD='" . $passwrd . "' ";
         $iresults = $ptrDb->executeQuery($insert);
         if (!$iresults) {
             $err_msg="Cannot update USERS table.<br><br>Please contact the administrator.";
-            localLogWriter($_POST['valid_id'], $err_msg);
+            localLogWriter($valid_id, $err_msg);
             // echo "<br>Error: " . $ptrDb->queryResultsError() . "<br>\n";
             // Close the database.
             $ptrDb->dbclose();

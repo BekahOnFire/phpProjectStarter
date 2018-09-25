@@ -14,6 +14,9 @@
 // DATABASE=basicproject
 // USER=webuser
 // SECRET=webUser1
+// LDAPON=N
+// LDAP=myLdapServer
+// LDAPDOMAIN=myLdapDomain
 // --------------------------------------------------------
 // After a valid connection and web execution, change user and secret word
 // as shown in dbConnect/basicTables.sql ! ! ! ! ! !
