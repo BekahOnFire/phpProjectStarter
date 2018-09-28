@@ -155,7 +155,7 @@
         if ( $ldapon === 'Y' ) {
             $ldap = ldap_connect($ldapServer);
 
-            $ldaprdn = 'mydomain' . "\\" . $valid_id;
+            $ldaprdn = $ldapDomain . "\\" . $valid_id;
             ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
             ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
             $bind = @ldap_bind($ldap, $ldaprdn, $passwrd);

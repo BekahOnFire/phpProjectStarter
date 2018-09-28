@@ -24,3 +24,16 @@ When debugging 500 errors on Linux, view the /var/log/http/error-log for errors 
 
 When encountering error - Could not connect: Access denied for user 'webuser'@'localhost' (using password YES
 Manually, log into MySQL as, "mysql -u webuser -p " to validate mysql access.
+
+LDAP:
+The coding theory is for LDAP to validate the user, and not check for a password in the BASIC_USERS table.
+For local database credentials validation, a password is required.
+
+Changing LDAP=Y in byHisSide.php turns on the LDAP validation in basicLogin.php
+
+Some LDAP queries may differ.  You may need to change this lines as follows:
+	$ldaprdn = "uid=$valid_id,ou=group name,o=$ldapDomain";
+				Swap group name for your group name.
+        $filter = "(|(uuid=$valid_id)(cn=$valid_id))";
+        $result = ldap_search($ldap,"ou=group name,o=$ldapDomain",$filter);
+                                   Swap group name for your group name.
