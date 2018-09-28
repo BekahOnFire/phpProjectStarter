@@ -255,7 +255,7 @@
 
         // Update the logging info.
         $insert = "update BASIC_USERS set LAST_LOGIN=now(),COUNT_LOGINS=COUNT_LOGINS+1,LAST_IP='$ip'
-        where USERNAME='" . $valid_id . "' and PASSWD='" . $passwrd . "' ";
+        where USERNAME='" . $valid_id . "' and PASSWD='" . $holdPwd . "' ";
         $iresults = $ptrDb->executeQuery($insert);
         if (!$iresults) {
             $err_msg="Cannot update USERS table.<br><br>Please contact the administrator.";
