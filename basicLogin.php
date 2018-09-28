@@ -151,6 +151,7 @@
         // Connect to LDAP.
         // Each user needs a local record. If in LDAP, add local record.
         // Then flow through to the default system.
+        $foundOnLDAP = "";
         if ( $ldapon === 'Y' ) {
             $ldap = ldap_connect($ldapServer);
 
@@ -176,40 +177,48 @@
                     localLogWriter($valid_id, "Info:" . $info);
                     // 
                     $_SESSION["userFullName"] = $info[$i]["distinguishedname"][0];
-                    $query = "select U.USER_NUMBER,USERNAME,PASSWD,APP_ACCESS,
+                    $foundOnLDAP = "Y";
+
+                    // Limit to 1 Check
+                    if ( $i == 0 ) {
+                        $query = "select U.USER_NUMBER,USERNAME,PASSWD,APP_ACCESS,
                               MAXLOGINATTEMPTS, ADMIN_ABLE
                                 from BASIC_USERS U, BASIC_USERS_CONFIG C
                                 where USERNAME='" . $valid_id . "'
-                                and PASSWD='" . $passwrd . "'
                                 and C.USER_NUMBER=U.USER_NUMBER ";
 
-                    $myResults = $ptrDb->executeQuery($query);
-                    if ($myResults) {
-                        if ( $ptrDb->queryResultsRowCount($myResults) < 1 ) {
-                            $insQuery = "insert into BASIC_USERS values (null,'" . $valid_id . "','" . $passwrd . "',now(),now(),now(),now(),0,0,'setup','')";
-                            $insResults = $ptrDb->executeQuery($insQuery);
-                            $query = "select U.USER_NUMBER from BASIC_USERS where USERNAME='" . $valid_id . "' and PASSWD='" . $passwrd . "'";
-                            $viewResults = $ptrDb->executeQuery($query);
-                            if ($viewResults) {
-                                if ( $ptrDb->queryResultsRowCount($myResults) > 0 ) {
-                                    $insQuery = "insert into BASIC_USERS_CONFIG values (1,15,'Y',now(),now())";
-                                    $insResults = $ptrDb->executeQuery($insQuery);
+                        $myResults = $ptrDb->executeQuery($query);
+                        if ($myResults) {
+                            if ( $ptrDb->queryResultsRowCount($myResults) < 1 ) {
+                                $insQuery = "insert into BASIC_USERS values (null,'" . $valid_id . "','LDAP LOOKUP',now(),now(),now(),now(),0,0,'setup','')";
+                                $insResults = $ptrDb->executeQuery($insQuery);
+                                $query = "select USER_NUMBER from BASIC_USERS where USERNAME='" . $valid_id . "' ";
+                                $viewResults = $ptrDb->executeQuery($query);
+                                if ($viewResults) {
+                                    if ( $ptrDb->queryResultsRowCount($viewResults) > 0 ) {
+                                        $row = $ptrDb->queryResultsRow($viewResults);
+                                        $insQuery = "insert into BASIC_USERS_CONFIG values (" . stripslashes($row["USER_NUMBER"]) . ",15,'Y',now(),now())";
+                                        $insResults = $ptrDb->executeQuery($insQuery);
+                                    }
                                 }
                             }
-                            $insResults = $ptrDb->executeQuery($insQuery);
                         }
-                    }
-                }
+                    } // Limit 1 
+                } // for count
                 @ldap_close($ldap);
             }
         }
 
         //
         // User record must exist in the database.
+        if ( $foundOnLDAP === "Y" )
+            $holdPwd = "LDAP LOOKUP";
+        else
+            $holdPwd = $passwrd;
         $query = "select U.USER_NUMBER,USERNAME,PASSWD,APP_ACCESS,
                   MAXLOGINATTEMPTS, ADMIN_ABLE
                     from BASIC_USERS U, BASIC_USERS_CONFIG C
-                    where USERNAME='" . $valid_id . "' and PASSWD='" . $passwrd . "'
+                    where USERNAME='" . $valid_id . "' and PASSWD='" . $holdPwd . "'
                     and C.USER_NUMBER=U.USER_NUMBER ";
         $myResults = $ptrDb->executeQuery($query);
         if ($myResults) {
